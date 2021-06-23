@@ -1,0 +1,44 @@
+name: Copyright
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-copyright:
+    if: "!startsWith(github.event.head_commit.message, 'chore')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.JINA_DEV_BOT }}
+      - run: |
+          git fetch --prune --unshallow
+          git config --local user.email "dev-bot@jina.ai"
+          git config --local user.name "Jina Dev Bot"
+      - uses: VinnyBabuManjaly/copyright-action@v1.0.0
+        with:
+          CopyrightString: '__copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."\n__license__ = "Apache-2.0"\n\n'
+          FileType: '.py'
+      - run: |
+          git add -u
+          git commit -m "chore: update copyright header"
+          git status
+          git push
+        continue-on-error: true
+
+  update-toc:
+    if: "!startsWith(github.event.head_commit.message, 'chore')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: technote-space/toc-generator@v2
+        with:
+          MAX_HEADER_LEVEL: 2
+          FOLDING: false
+          GITHUB_TOKEN: ${{ secrets.JINA_DEV_BOT }}
+          TOC_TITLE: '**Table of Contents**'
+          TARGET_PATHS: '.'
+          COMMIT_MESSAGE: 'chore(docs): update TOC'
+          COMMIT_NAME: Jina Dev Bot
+          COMMIT_EMAIL: dev-bot@jina.ai

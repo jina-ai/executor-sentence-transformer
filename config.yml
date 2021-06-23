@@ -1,0 +1,4 @@
+jtype: MyDummyExecutor
+metas:
+  py_modules:
+    - MODULE_NAME.py
