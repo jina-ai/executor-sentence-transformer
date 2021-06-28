@@ -1,2 +1,2 @@
-sentence-transformers==1.2.0
+sentence-transformers==2.0.0
 jina==2.0.0rc9
