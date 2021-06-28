@@ -1,2 +1,2 @@
 sentence-transformers==1.2.0
-jina==2.0.0rc6
+jina==2.0.0rc9

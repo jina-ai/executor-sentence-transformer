@@ -7,7 +7,7 @@ from jina import Executor, DocumentArray, requests
 from sentence_transformers import SentenceTransformer
 
 
-class ExecutorSentenceTransformer(Executor):
+class TransformerSentenceEncoder(Executor):
     """
     Encode the Document text into embedding.
 

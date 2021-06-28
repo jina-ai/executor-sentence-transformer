@@ -1,6 +1,6 @@
 manifest_version: 1
-name: Sentence Encoder
-alias: sentence_encoder
+name: TransformerSentenceEncoder
+alias: TransformerSentenceEncoder
 description: Executor wraps the sentence_encoder library and computes sentence embeddings.
 author: Jina AI Dev-Team (dev-team@jina.ai)
 url: https://github.com/jina-ai/executor-sentence-transformer

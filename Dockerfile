@@ -1,13 +1,14 @@
-FROM jinaai/jina:master as base
+FROM jinaai/jina:2.0.0rc9
 
-COPY . ./sentence-transformer/
-WORKDIR ./sentence-transformer
+# install git
+RUN apt-get -y update && apt-get install -y git
 
-RUN pip install .
+# install requirements before copying the workspace
+COPY requirements.txt /requirements.txt
+RUN pip install -r requirements.txt
 
-FROM base
-RUN pip install -r tests/requirements.txt
-RUN pytest tests
+# setup the workspace
+COPY . /workspace
+WORKDIR /workspace
 
-FROM base
 ENTRYPOINT ["jina", "executor", "--uses", "config.yml"]
