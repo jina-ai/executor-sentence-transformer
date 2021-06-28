@@ -55,4 +55,4 @@ def _batch_generator(
     data: DocumentArray, batch_size: int
 ) -> Generator[DocumentArray, None, None]:
     for i in range(0, len(data), batch_size):
-        yield data[i: min(i + batch_size, len(data))]
+        yield data[i: i + batch_size]
