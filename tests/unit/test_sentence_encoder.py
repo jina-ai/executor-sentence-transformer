@@ -6,11 +6,11 @@ import pytest
 import torch
 from jina import DocumentArray, Document
 
-from jinahub.text.encoders.sentence_encoder import ExecutorSentenceTransformer
+from jinahub.text.encoders.sentence_encoder import TransformerSentenceEncoder
 
 
 def test_encoding_cpu():
-    enc = ExecutorSentenceTransformer(device="cpu")
+    enc = TransformerSentenceEncoder(device="cpu")
     input_data = DocumentArray([Document(text="hello world")])
 
     enc.encode(docs=input_data, parameters={})
@@ -20,7 +20,7 @@ def test_encoding_cpu():
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="GPU is needed for this test")
 def test_encoding_gpu():
-    enc = ExecutorSentenceTransformer(device="cuda")
+    enc = TransformerSentenceEncoder(device="cuda")
     input_data = DocumentArray([Document(text="hello world")])
 
     enc.encode(docs=input_data, parameters={})
@@ -35,7 +35,7 @@ def test_encodes_semantic_meaning():
     sentences["C"] = "There are animals on the road"
     sentences["D"] = "A dog is running down the road"
 
-    encoder = ExecutorSentenceTransformer()
+    encoder = TransformerSentenceEncoder()
 
     embeddings = {}
     for id_, sentence in sentences.items():
