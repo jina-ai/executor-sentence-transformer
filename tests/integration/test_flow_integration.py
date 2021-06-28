@@ -15,8 +15,8 @@ def test_integration(
     data_generator: Callable,
     request_size: int
 ):
-    with Flow(return_results=True).add(uses=TransformerSentenceEncoder) as flow:
-        resp = flow.post(on='/index', inputs=data_generator(), request_size=request_size)
+    with Flow().add(uses=TransformerSentenceEncoder) as flow:
+        resp = flow.post(on='/index', inputs=data_generator(), request_size=request_size, return_results=True)
 
     assert min(len(resp) * request_size, 50) == 50
 
@@ -58,10 +58,10 @@ def test_traversal_path(
 
         return validate
 
-    flow = Flow(return_results=True).add(uses=TransformerSentenceEncoder)
+    flow = Flow().add(uses=TransformerSentenceEncoder)
     with flow:
         resp = flow.post(
-            on="/test", inputs=docs, parameters={"traversal_paths": [traversal_path]}
+            on="/test", inputs=docs, parameters={"traversal_paths": [traversal_path]}, return_results=True
         )
 
     assert validate_traversal(docs_per_path)(resp)
