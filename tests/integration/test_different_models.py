@@ -7,7 +7,7 @@ import pytest
 
 from jina import DocumentArray
 
-from jinahub.text.encoders.sentence_encoder import ExecutorSentenceTransformer
+from jinahub.text.encoders.sentence_encoder import TransformerSentenceEncoder
 
 
 MODELS_TO_TEST = [
@@ -22,7 +22,7 @@ MODELS_TO_TEST = [
     'model_name', MODELS_TO_TEST
 )
 def test_load_torch_models(model_name: str, data_generator: Callable):
-    encoder = ExecutorSentenceTransformer(model_name=model_name)
+    encoder = TransformerSentenceEncoder(model_name=model_name)
 
     docs = DocumentArray([doc for doc in data_generator()])
     encoder.encode(

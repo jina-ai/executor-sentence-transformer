@@ -5,7 +5,7 @@ from typing import Callable, List
 import pytest
 
 from jina import Flow, DocumentArray
-from jinahub.text.encoders.sentence_encoder import ExecutorSentenceTransformer
+from jinahub.text.encoders.sentence_encoder import TransformerSentenceEncoder
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ def test_integration(
     data_generator: Callable,
     request_size: int
 ):
-    with Flow(return_results=True).add(uses=ExecutorSentenceTransformer) as flow:
+    with Flow(return_results=True).add(uses=TransformerSentenceEncoder) as flow:
         resp = flow.post(on='/index', inputs=data_generator(), request_size=request_size)
 
     assert min(len(resp) * request_size, 50) == 50
@@ -58,7 +58,7 @@ def test_traversal_path(
 
         return validate
 
-    flow = Flow(return_results=True).add(uses=ExecutorSentenceTransformer)
+    flow = Flow(return_results=True).add(uses=TransformerSentenceEncoder)
     with flow:
         resp = flow.post(
             on="/test", inputs=docs, parameters={"traversal_paths": [traversal_path]}
