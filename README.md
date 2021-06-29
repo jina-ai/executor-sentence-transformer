@@ -1,6 +1,6 @@
 # ✨ Executor Sentence Encoder 
 
-**ExecutorSentenceTransformer** wraps the [Sentence Transformer](https://www.sbert.net/docs)
+**TransformerSentenceEncoder** wraps the [Sentence Transformer](https://www.sbert.net/docs)
 library into an `Jina` executor. 
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -20,6 +20,46 @@ The [dependencies](requirements.txt) for this executor can be installed using `p
 The test suite has additional [requirements](tests/requirements.txt).
 
 ## 🚀 Usages
+### 🚚 Via JinaHub
+
+#### using docker images
+Use the prebuilt images from JinaHub in your python codes, 
+
+```python
+from jina import Flow
+	
+f = Flow().add(uses='jinahub+docker://TransformerSentenceEncoder')
+```
+
+or in the `.yml` config.
+	
+```yaml
+jtype: Flow
+pods:
+  - name: encoder
+    uses: 'jinahub+docker://TransformerSentenceEncoder'
+```
+
+#### using source codes
+Use the source codes from JinaHub in your python codes,
+
+```python
+from jina import Flow
+	
+f = Flow().add(uses='jinahub://TransformerSentenceEncoder')
+```
+
+or in the `.yml` config.
+
+```yaml
+jtype: Flow
+pods:
+  - name: encoder
+    uses: 'jinahub://TransformerSentenceEncoder'
+```
+
+
+### 📦️ Via Pypi
 1. Install the `executor-sentence-transformer` package.
 
 	```bash
@@ -30,8 +70,8 @@ The test suite has additional [requirements](tests/requirements.txt).
 
 ```python
 from jina import Flow
-from jinahub.text.encoders.sentence_encoder import ExecutorSentenceTransformer
-f = Flow().add(uses=ExecutorSentenceTransformer)
+from jinahub.text.encoders.sentence_encoder import TransformerSentenceEncoder
+f = Flow().add(uses=TransformerSentenceEncoder)
 ```
 
 ### 🐳 Via Docker
