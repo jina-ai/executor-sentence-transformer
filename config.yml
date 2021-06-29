@@ -1,4 +1,4 @@
-jtype: MyDummyExecutor
+jtype: TransformerSentenceEncoder
 metas:
   py_modules:
-    - MODULE_NAME.py
+    - sentence_encoder.py
