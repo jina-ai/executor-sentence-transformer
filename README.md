@@ -101,7 +101,7 @@ from jina import Flow, Document
 f = Flow().add(uses='docker://executor-sentence-transformer:latest')
 
 with f:
-    resp = f.post(on='foo', inputs=Document(), return_resutls=True)
+    resp = f.post(on='foo', inputs=Document(), return_results=True)
 	print(f'{resp}')
 ```
 
