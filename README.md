@@ -16,8 +16,15 @@ library into an `Jina` executor.
 
 ## 🌱 Prerequisites
 
-The [dependencies](requirements.txt) for this executor can be installed using `pip install -r requirements.txt`.
-The test suite has additional [requirements](tests/requirements.txt).
+To install the dependencies locally run 
+```
+pip install . 
+pip install -r tests/requirements.txt
+```
+To verify the installation works:
+```
+pytest tests
+```
 
 ## 🚀 Usages
 ### 🚚 Via JinaHub
