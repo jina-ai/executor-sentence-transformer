@@ -1,3 +1,5 @@
+MOVED TO https://github.com/jina-ai/executors/tree/main/jinahub/encoders/text/TransformerSentenceEncoder
+
 # ✨ Executor Sentence Encoder 
 
 **TransformerSentenceEncoder** wraps the [Sentence Transformer](https://www.sbert.net/docs)
