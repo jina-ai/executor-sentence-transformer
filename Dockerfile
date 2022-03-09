@@ -1,4 +1,4 @@
-FROM jinaai/jina:3.1-py37-perf
+FROM jinaai/jina:3-py37-perf
 
 # install requirements before copying the workspace
 COPY requirements.txt /requirements.txt
