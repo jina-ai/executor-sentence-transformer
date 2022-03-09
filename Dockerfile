@@ -1,7 +1,4 @@
-FROM jinaai/jina:2.0
-
-# install git
-RUN apt-get -y update && apt-get install -y git
+FROM jinaai/jina:3.1-py37-perf
 
 # install requirements before copying the workspace
 COPY requirements.txt /requirements.txt
