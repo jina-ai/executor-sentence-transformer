@@ -1,7 +1,8 @@
 __copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."
 __license__ = "Apache-2.0"
 
-from typing import Dict
+import warnings
+from typing import Dict, Optional
 
 import torch
 from jina import DocumentArray, Executor, requests
@@ -16,7 +17,8 @@ class TransformerSentenceEncoder(Executor):
     def __init__(
         self,
         model_name: str = 'all-MiniLM-L6-v2',
-        traversal_paths: str = '@r',
+        access_paths: str = '@r',
+        traversal_paths: Optional[str] = None,
         batch_size: int = 32,
         device: str = 'cpu',
         *args,
@@ -25,12 +27,19 @@ class TransformerSentenceEncoder(Executor):
         """
         :param model_name: The name of the sentence transformer to be used
         :param device: Torch device to put the model on (e.g. 'cpu', 'cuda', 'cuda:1')
-        :param traversal_paths: Default traversal paths
+        :param access_paths: Default traversal paths
+        :param traversal_paths: please use access_paths
         :param batch_size: Batch size to be used in the encoder model
         """
         super().__init__(*args, **kwargs)
         self.batch_size = batch_size
-        self.traversal_paths = traversal_paths
+        if traversal_paths is not None:
+            self.access_paths = traversal_paths
+            warnings.warn("'traversal_paths' will be deprecated in the future, please use 'access_paths'.",
+                          DeprecationWarning,
+                          stacklevel=2)
+        else:
+            self.access_paths = access_paths
         self.model = SentenceTransformer(model_name, device=device)
 
     @requests
@@ -46,7 +55,7 @@ class TransformerSentenceEncoder(Executor):
         document_batches_generator = DocumentArray(
             filter(
                 lambda d: d.text,
-                docs[parameters.get('traversal_paths', self.traversal_paths)],
+                docs[parameters.get('access_paths', self.access_paths)],
             )
         ).batch(batch_size=parameters.get('batch_size', self.batch_size))
 
