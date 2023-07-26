@@ -1,12 +1,24 @@
 __copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."
 __license__ = "Apache-2.0"
 
-import warnings
-from typing import Dict, Optional
+from typing import Dict
+from more_itertools import chunked
 
 import torch
-from jina import DocumentArray, Executor, requests
+from jina import Executor, requests
 from sentence_transformers import SentenceTransformer
+
+from docarray import DocList, BaseDoc
+from docarray.typing.tensor.embedding.torch import TorchEmbedding
+
+
+class TextInputDoc(BaseDoc):
+    text: str
+
+
+class TextOutputDoc(BaseDoc):
+    text: str
+    embedding: TorchEmbedding
 
 
 class TransformerSentenceEncoder(Executor):
@@ -15,14 +27,12 @@ class TransformerSentenceEncoder(Executor):
     """
 
     def __init__(
-        self,
-        model_name: str = 'all-MiniLM-L6-v2',
-        access_paths: str = '@r',
-        traversal_paths: Optional[str] = None,
-        batch_size: int = 32,
-        device: str = 'cpu',
-        *args,
-        **kwargs
+            self,
+            model_name: str = 'all-MiniLM-L6-v2',
+            batch_size: int = 32,
+            device: str = 'cpu',
+            *args,
+            **kwargs
     ):
         """
         :param model_name: The name of the sentence transformer to be used
@@ -33,17 +43,10 @@ class TransformerSentenceEncoder(Executor):
         """
         super().__init__(*args, **kwargs)
         self.batch_size = batch_size
-        if traversal_paths is not None:
-            self.access_paths = traversal_paths
-            warnings.warn("'traversal_paths' will be deprecated in the future, please use 'access_paths'.",
-                          DeprecationWarning,
-                          stacklevel=2)
-        else:
-            self.access_paths = access_paths
         self.model = SentenceTransformer(model_name, device=device)
 
     @requests
-    def encode(self, docs: DocumentArray = [], parameters: Dict = {}, **kwargs):
+    def encode(self, docs: DocList[TextInputDoc], parameters: Dict, **kwargs) -> DocList[TextOutputDoc]:
         """
         Encode all docs with text and store the encodings in the ``embedding`` attribute
         of the docs.
@@ -52,14 +55,10 @@ class TransformerSentenceEncoder(Executor):
             attribute get an embedding.
         :param parameters: Any additional parameters for the `encode` function.
         """
-        document_batches_generator = DocumentArray(
-            filter(
-                lambda d: d.text,
-                docs[parameters.get('access_paths', self.access_paths)],
-            )
-        ).batch(batch_size=parameters.get('batch_size', self.batch_size))
-
+        ret = DocList[TextOutputDoc]()
         with torch.inference_mode():
-            for batch in document_batches_generator:
-                embeddings = self.model.encode(batch.texts)
-                batch.embeddings = embeddings
+            for batch in chunked(docs, parameters.get('batch_size', self.batch_size)):
+                embeddings = self.model.encode(batch.text)
+                for doc, embedding in zip(docs, embeddings):
+                    ret.append(TextOutputDoc(text=doc.text, embedding=embedding))
+        return ret
