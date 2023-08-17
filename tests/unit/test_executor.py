@@ -1,9 +1,10 @@
 from pathlib import Path
-from typing import List
-
+import numpy as np
 import pytest
-from jina import Document, DocumentArray, Executor
+from jina import Executor
 from sentence_encoder import TransformerSentenceEncoder
+from docarray import DocList
+from docarray.documents import TextDoc
 
 _EMBEDDING_DIM = 384
 
@@ -20,7 +21,7 @@ def test_config():
 
 def test_encoding_cpu():
     enc = TransformerSentenceEncoder(device='cpu')
-    input_data = DocumentArray([Document(text='hello world')])
+    input_data = DocList[TextDoc]([TextDoc(text='hello world')])
 
     enc.encode(docs=input_data, parameters={})
 
@@ -30,7 +31,7 @@ def test_encoding_cpu():
 @pytest.mark.gpu
 def test_encoding_gpu():
     enc = TransformerSentenceEncoder(device='cuda')
-    input_data = DocumentArray([Document(text='hello world')])
+    input_data = DocList[TextDoc]([TextDoc(text='hello world')])
 
     enc.encode(docs=input_data, parameters={})
 
@@ -47,49 +48,16 @@ def test_encoding_gpu():
 )
 def test_models(model_name: str, emb_dim: int):
     encoder = TransformerSentenceEncoder(model_name)
-    input_data = DocumentArray([Document(text='hello world')])
+    input_data = DocList[TextDoc]([TextDoc(text='hello world')])
 
     encoder.encode(docs=input_data, parameters={})
 
     assert input_data[0].embedding.shape == (emb_dim,)
 
 
-@pytest.mark.parametrize(
-    'access_paths, counts',
-    [
-        ('@r', [['@r', 1], ['@c', 0], ['@cc', 0]]),
-        ('@c', [['@r', 0], ['@c', 3], ['@cc', 0]]),
-        ('@cc', [['@r', 0], ['@c', 0], ['@cc', 2]]),
-        ('@r,cc', [['@r', 1], ['@c', 0], ['@cc', 2]]),
-    ],
-)
-def test_traversal_path(
-    access_paths: str, counts: List, basic_encoder: TransformerSentenceEncoder
-):
-    text = 'blah'
-    docs = DocumentArray([Document(id='root1', text=text)])
-    docs[0].chunks = [
-        Document(id='chunk11', text=text),
-        Document(id='chunk12', text=text),
-        Document(id='chunk13', text=text),
-    ]
-    docs[0].chunks[0].chunks = [
-        Document(id='chunk111', text=text),
-        Document(id='chunk112', text=text),
-    ]
-
-    basic_encoder.encode(docs=docs, parameters={'access_paths': access_paths})
-    for path, count in counts:
-        embeddings = DocumentArray(docs[path]).embeddings
-        if count == 0:
-            assert embeddings is None
-        else:
-            len(embeddings) == count
-
-
 @pytest.mark.parametrize('batch_size', [1, 2, 4, 8])
 def test_batch_size(basic_encoder: TransformerSentenceEncoder, batch_size: int):
-    docs = DocumentArray([Document(text='hello there') for _ in range(32)])
+    docs = DocList[TextDoc]([TextDoc(text='hello there') for _ in range(32)])
     basic_encoder.encode(docs, parameters={'batch_size': batch_size})
 
     for doc in docs:
@@ -97,19 +65,39 @@ def test_batch_size(basic_encoder: TransformerSentenceEncoder, batch_size: int):
 
 
 def test_quality_embeddings(basic_encoder: TransformerSentenceEncoder):
-    docs = DocumentArray(
+    docs = DocList[TextDoc](
         [
-            Document(id='A', text='a furry animal that with a long tail'),
-            Document(id='B', text='a domesticated mammal with four legs'),
-            Document(id='C', text='a type of aircraft that uses rotating wings'),
-            Document(id='D', text='flying vehicle that has fixed wings and engines'),
+            TextDoc(id='A', text='a furry animal that with a long tail'),
+            TextDoc(id='B', text='a domesticated mammal with four legs'),
+            TextDoc(id='C', text='a type of aircraft that uses rotating wings'),
+            TextDoc(id='D', text='flying vehicle that has fixed wings and engines'),
         ]
     )
 
-    basic_encoder.encode(DocumentArray(docs), {})
+    basic_encoder.encode(docs, {})
 
     # assert semantic meaning is captured in the encoding
-    docs.match(docs)
     matches = ['B', 'A', 'D', 'C']
-    for i, doc in enumerate(docs):
-        assert doc.matches[1].id == matches[i]
+
+    def cosine_similarity(v1, v2):
+        dot_product = np.dot(v1, v2)
+        norm_v1 = np.linalg.norm(v1)
+        norm_v2 = np.linalg.norm(v2)
+        return dot_product / (norm_v1 * norm_v2)
+
+    # Compute pairwise cosine similarities
+    num_docs = len(docs)
+    similarity_matrix = np.zeros((num_docs, num_docs))
+    for i in range(num_docs):
+        for j in range(num_docs):
+            similarity_matrix[i][j] = cosine_similarity(docs[i].embedding, docs[j].embedding)
+
+    def get_most_similar(idx, matrix):
+        row = matrix[idx]
+        # Setting similarity with self to -1 to exclude it from being the max
+        row[idx] = -1
+        return np.argmax(row)
+
+    for idx, doc in enumerate(docs):
+        assert docs[get_most_similar(idx, similarity_matrix)].id == matches[idx]
+
