@@ -4,7 +4,9 @@ __license__ = "Apache-2.0"
 import subprocess
 
 import pytest
-from jina import Document, DocumentArray, Flow
+from jina import Flow
+from docarray import DocList
+from docarray.documents import TextDoc
 from sentence_encoder import TransformerSentenceEncoder
 
 _EMBEDDING_DIM = 384
@@ -12,8 +14,8 @@ _EMBEDDING_DIM = 384
 
 @pytest.mark.parametrize('request_size', [1, 10, 50, 100])
 def test_integration(request_size: int):
-    docs = DocumentArray(
-        [Document(text='just some random text here') for _ in range(50)]
+    docs = DocList[TextDoc](
+        [TextDoc(text='just some random text here') for _ in range(50)]
     )
     with Flow(return_results=True).add(uses=TransformerSentenceEncoder) as flow:
         resp_docs = flow.post(on='/index', inputs=docs, request_size=request_size)
