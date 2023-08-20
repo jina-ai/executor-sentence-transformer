@@ -41,9 +41,9 @@ class TransformerSentenceEncoder(Executor):
             attribute get an embedding.
         :param parameters: Any additional parameters for the `encode` function.
         """
-        batch_generator = (docs[pos:pos + self.batch_size] for pos in range(0, len(docs), self.batch_size))
+        batch_size = parameters.get('batch_size', self.batch_size)
+        batch_generator = (docs[pos:pos + batch_size] for pos in range(0, len(docs), batch_size))
 
         with torch.inference_mode():
             for batch in batch_generator:
-                embeddings = self.model.encode(batch.text)
-                batch.embedding = embeddings
+                batch.embedding = self.model.encode(batch.text)
